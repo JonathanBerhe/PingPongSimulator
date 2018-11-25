@@ -3,6 +3,14 @@ class Vector {
         this.x = x
         this.y = y
     }
+    get len() {
+        return Math.sqrt(this.x * this.x + this.y * this.y)
+    }
+    set len(value) {
+        const fact = value / this.len
+        this.x *= fact
+        this.y *= fact
+    }
 }
 
 class Rectangle {
@@ -58,7 +66,7 @@ class Pong {
         for (const player of this.players) player.position.y = this._canvas.height / 2
 
         this.ball = new Ball
-        this.ball.setDefaultVelocity(600)
+        this.ball.setDefaultVelocity(300)
         this.ball.setDefaultPosition()
 
         this.updateAnimationFrame();
@@ -75,11 +83,15 @@ class Pong {
         callback();
     }
 
-    collide(player, ball){
-        if( player.left < ball.right && player.right > ball.left && 
-            player.top < ball.bottom && player.bottom > ball.top ){
-                ball.vel.x = -ball.vel.x
-            }
+    collide(player, ball) {
+        if (player.left < ball.right && player.right > ball.left &&
+            player.top < ball.bottom && player.bottom > ball.top) {
+
+            const len = ball.vel.len
+            ball.vel.x = -ball.vel.x
+            ball.vel.y += 300 * (Math.random() - 0.5)
+            ball.vel.len = len * 1.05
+        }
     }
 
     drawRectangleElement(rect) {
@@ -98,12 +110,28 @@ class Pong {
         for (const player of this.players) this.drawRectangleElement(player)
     }
 
+    reset() {
+        this.ball.position.x = this._canvas.width / 2
+        this.ball.position.y = this._canvas.height / 2
+        this.ball.vel.x = 0
+        this.ball.vel.y = 0
+    }
+    start() {
+        if (this.ball.vel.x == 0 && this.ball.vel.y == 0) {
+            this.ball.vel.x = 300 * (Math.random() < 0.5 ? 1 : -1)
+            this.ball.vel.y = 300 * (Math.random() * 2 - 1)
+            this.ball.vel.len = 200
+        }
+    }
+
     updatePosition(dt) {
         this.ball.position.x += this.ball.vel.x * dt
         this.ball.position.y += this.ball.vel.y * dt
 
         if (this.ball.left < 0 || this.ball.right > this._canvas.width) {
-            this.ball.vel.x = -this.ball.vel.x
+            const playerId = (this.ball.vel.x < 0) ? 1 : 0
+            this.players[playerId].score++
+            this.reset()
         }
 
         if (this.ball.top < 0 || this.ball.bottom > this._canvas.height) {
@@ -111,7 +139,7 @@ class Pong {
         }
         // user player
         this.players[1].position.y = this.ball.position.y
-        for(const player of this.players) this.collide(player, this.ball)
+        for (const player of this.players) this.collide(player, this.ball)
 
         this.drawAll()
     }
@@ -124,4 +152,8 @@ const pong = new Pong(canvas)
 // CPU player
 canvas.addEventListener('mousemove', event => {
     pong.players[0].position.y = event.offsetY
+})
+
+canvas.addEventListener('click', () => {
+    pong.start()
 })
