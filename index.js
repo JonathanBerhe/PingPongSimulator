@@ -3,9 +3,11 @@ class Vector {
         this.x = x
         this.y = y
     }
+
     get len() {
         return Math.sqrt(this.x * this.x + this.y * this.y)
     }
+
     set len(value) {
         const fact = value / this.len
         this.x *= fact
@@ -18,17 +20,26 @@ class Rectangle {
         this.position = new Vector
         this.size = new Vector(w, h)
     }
+
     get left() {
         return this.position.x - this.size.x / 2
     }
+
     get right() {
         return this.position.x + this.size.x / 2
     }
+
     get top() {
         return this.position.y - this.size.y / 2
     }
+
     get bottom() {
         return this.position.y + this.size.y / 2
+    }
+
+    setPosition(x = window.innerWidth / 2, y = window.innerHeight / 2) {
+        this.position.x = x
+        this.position.y = y
     }
 }
 
@@ -38,13 +49,9 @@ class Ball extends Rectangle {
         this.vel = new Vector
     }
 
-    setDefaultVelocity(velocity) {
+    setVelocity(velocity = 420) {
         this.vel.x = velocity
         this.vel.y = velocity
-    }
-    setDefaultPosition(x = 132, y = 190) {
-        this.position.x = x
-        this.position.y = y
     }
 }
 
@@ -61,25 +68,22 @@ class Pong {
         this._context = canvas.getContext('2d')
 
         this.players = [new Player, new Player]
-        this.players[0].position.x = 40
-        this.players[1].position.x = this._canvas.width - 40
-        for (const player of this.players) player.position.y = this._canvas.height / 2
-
         this.ball = new Ball
-        this.ball.setDefaultVelocity(300)
-        this.ball.setDefaultPosition()
 
+        this.reset()
         this.updateAnimationFrame();
     }
 
     updateAnimationFrame() {
         let lastTime = null
+
         const callback = (millis) => {
             if (lastTime)
                 this.updatePosition((millis - lastTime) / 1000);
             lastTime = millis;
             requestAnimationFrame(callback);
         };
+
         callback();
     }
 
@@ -95,27 +99,31 @@ class Pong {
     }
 
     drawRectangleElement(rect) {
-        this._context.fillStyle = '#fff'
+        this._context.fillStyle = 'white'
         this._context.fillRect(rect.left, rect.top, rect.size.x, rect.size.y)
-        //console.log('ball: ', ...rect)
     }
 
     drawAll() {
         // Draw background
-        this._context.fillStyle = '#000'
+        this._context.fillStyle = 'black'
         this._context.fillRect(0, 0, this._canvas.width, this._canvas.height)
 
         this.drawRectangleElement(this.ball)
 
-        for (const player of this.players) this.drawRectangleElement(player)
+        for (let player of this.players) this.drawRectangleElement(player)
     }
 
     reset() {
-        this.ball.position.x = this._canvas.width / 2
-        this.ball.position.y = this._canvas.height / 2
-        this.ball.vel.x = 0
-        this.ball.vel.y = 0
+        this._canvas.width = window.innerWidth
+        this._canvas.height = window.innerHeight
+
+        this.players[0].setPosition(40)
+        this.players[1].setPosition(this._canvas.width - 40)
+
+        this.ball.setVelocity()
+        this.ball.setPosition()
     }
+
     start() {
         if (this.ball.vel.x == 0 && this.ball.vel.y == 0) {
             this.ball.vel.x = 300 * (Math.random() < 0.5 ? 1 : -1)
@@ -139,7 +147,7 @@ class Pong {
         }
         // user player
         this.players[1].position.y = this.ball.position.y
-        for (const player of this.players) this.collide(player, this.ball)
+        for (let player of this.players) this.collide(player, this.ball)
 
         this.drawAll()
     }
@@ -157,3 +165,12 @@ canvas.addEventListener('mousemove', event => {
 canvas.addEventListener('click', () => {
     pong.start()
 })
+
+// Resize the canvas to fill the browser window dynamically
+window.addEventListener('resize', () => {
+    /**
+     * Your drawings need to be inside this function otherwise they will be reset when
+     * you resize the browser window and the canvas goes will be cleared.
+     */
+    pong.reset();
+}, false);
