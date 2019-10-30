@@ -1,3 +1,9 @@
+const DIFFICULTY_LEVELS = {
+    easy: 200,
+    normal: 400,
+    hard: 600,
+}
+
 class Vector {
     constructor(x = 0, y = 0) {
         this.x = x
@@ -49,7 +55,7 @@ class Ball extends Rectangle {
         this.vel = new Vector
     }
 
-    setVelocity(velocity = 420) {
+    setVelocity(velocity = 0) {
         this.vel.x = velocity
         this.vel.y = velocity
     }
@@ -91,10 +97,9 @@ class Pong {
         if (player.left < ball.right && player.right > ball.left &&
             player.top < ball.bottom && player.bottom > ball.top) {
 
-            const len = ball.vel.len
             ball.vel.x = -ball.vel.x
             ball.vel.y += 300 * (Math.random() - 0.5)
-            ball.vel.len = len * 1.05
+            ball.vel.len *= 1.05
         }
     }
 
@@ -128,7 +133,7 @@ class Pong {
         if (this.ball.vel.x == 0 && this.ball.vel.y == 0) {
             this.ball.vel.x = 300 * (Math.random() < 0.5 ? 1 : -1)
             this.ball.vel.y = 300 * (Math.random() * 2 - 1)
-            this.ball.vel.len = 200
+            this.ball.vel.len = DIFFICULTY_LEVELS.easy
         }
     }
 
